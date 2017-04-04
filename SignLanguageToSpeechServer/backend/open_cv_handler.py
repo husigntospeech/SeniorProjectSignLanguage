@@ -41,7 +41,7 @@ class OpenCVHandler(object):
 
 		# compare captured image with hand 
 		for x in range(ord('A'), ord('F')+1):
-	        imLetter = cv2.imread('sign_' + chr(x) + '.jpg')
+   			imLetter = cv2.imread('sign_' + chr(x) + '.jpg')
 	        grey = cv2.cvtColor(imLetter, cv2.COLOR_BGR2GRAY)
 	        blurred = cv2.GaussianBlur(grey, value, 0)
 	        _, letter_thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
