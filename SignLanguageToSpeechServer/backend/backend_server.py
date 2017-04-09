@@ -2,9 +2,18 @@
 import base64
 import io
 import json
+import threading
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from SocketServer import ThreadingMixIn
 from open_cv_handler import OpenCVHandler
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+	'''
+		Will enable requests to be handled in a separate thread.
+		No code is required here. Magical, huh?
+	'''
+	pass
 
 class ServerHandler(BaseHTTPRequestHandler):
 	def do_GET(self):
@@ -14,20 +23,26 @@ class ServerHandler(BaseHTTPRequestHandler):
 		self.wfile.write("<h1>Welcome.</h1>")
 
 	def do_POST(self):
+		print self.path
 		# Processing HTTP POST request data
-		content_len = int(self.headers.getheader('content-length', 0))
+		content_len = int(self.headers.getheader('content-length'))
+		print 'Parsing HTTP header.'
 		post_body_json = self.rfile.read(content_len)
+		print 'Got it. Moving on, now.'
 		post_body = json.loads(post_body_json)
 		image_data = post_body.get('img_string_b64', 'No Image String')
 
+		print 'Decoding image string.'
 		# Processing image data
 		image_name = 'image.jpg'
 		decoded_str = base64.decodestring(image_data)
 		self.write_image_to_system(decoded_str, image_name)
 
+		print 'Getting text translation.'
+		opencv_handler = OpenCVHandler()
 		# Get translation from OpenCV then play text audio
-		text_trans = OpenCVHandler.get_text_translation_from_image(image_name)
-		OpenCVHandler.play_audio_translation_from_text(text_trans)
+		text_trans = opencv_handler.get_text_translation_from_image(image_name)
+		opencv_handler.play_audio_translation_from_text(text_trans)
 
 		# Responding to the POST requester.
 		# text_trans = 'Translated'
@@ -36,6 +51,8 @@ class ServerHandler(BaseHTTPRequestHandler):
 		self.send_header('Content-type', 'text/html')
 		self.end_headers()
 		self.wfile.write(response)
+
+		return
 
 	def write_image_to_system(self, decoded_str, image_name):
 		print 'Writing image to server'
@@ -47,7 +64,7 @@ def main():
 	try:
 		# 10.224.90.237
 		ip_address = raw_input('Enter IP Address to host server: ')
-		server = HTTPServer((ip_address, 8080), ServerHandler)
+		server = ThreadedHTTPServer((ip_address, 8080), ServerHandler)
 		print 'HTTPServer started'
 		server.serve_forever()
 
