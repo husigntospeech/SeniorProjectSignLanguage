@@ -73,7 +73,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        if (persistentClient.isOpen()) {
+//        if (persistentClient.isOpen()) {
             // Get an instance that represents the camera of the android device.
             camera = getCameraInstance();
 
@@ -100,9 +100,9 @@ public class CameraPreviewActivity extends AppCompatActivity {
                     setBox();
                 }
             });
-        } else {
-            closeActivity("Unable to Contact Server. Check IP Address.");
-        }
+//        } else {
+//            closeActivity("Unable to Contact Server. Check IP Address.");
+//        }
     }
 
     public void closeActivity() {
