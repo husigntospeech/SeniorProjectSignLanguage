@@ -4,11 +4,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
-import android.util.Pair;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -16,19 +14,11 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
 import org.java_websocket.handshake.ServerHandshake;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -68,41 +58,46 @@ public class CameraPreviewActivity extends AppCompatActivity {
 
         try {
             persistentClient = new PersistentClient("ws://" + ipAddress);
+            displayPopUp("Attempting to connecting to " + ipAddress);
             persistentClient.connect();
         } catch (java.net.URISyntaxException e) {
             e.printStackTrace();
         }
+    }
 
-//        if (persistentClient.isOpen()) {
-            // Get an instance that represents the camera of the android device.
-            camera = getCameraInstance();
+    public void setupActivity() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
 
-            // Instantiate an object of CameraPreview.
-            // It helps to actually look at this class before reading the rest of this class.
-            cameraPreview = new CameraPreview(this, camera);
+                // Get an instance that represents the camera of the android device.
+                camera = getCameraInstance();
 
-            // Create a FrameLayout that will hold the CameraPreview SurfaceView.
-            // NOTE: THIS IS IMPORTANT. At this stage in the code, NOTHING HAS A size yet. Nothing
-            // has actually been created that the user ACTUALLY SEE.
-            FrameLayout frameLayout = (FrameLayout) findViewById(R.id.fr_layout_camera_preview);
-            frameLayout.addView(cameraPreview);
+                // Instantiate an object of CameraPreview.
+                // It helps to actually look at this class before reading the rest of this class.
+                cameraPreview = new CameraPreview(CameraPreviewActivity.this, camera);
 
-            // Okay, a ViewTreeObserver allows us to listen for layout changes on a particular
-            // element. So, we are going to attach a callback to the ViewTreeObserver that belongs
-            // to the CameraPreview SurfaceView that will be called when any layout changes occur in
-            // the CameraPreview SurfaceView.
-            ViewTreeObserver observer = cameraPreview.getViewTreeObserver();
-            // Adding the callback function "setBox" to be called.
-            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                // Create a FrameLayout that will hold the CameraPreview SurfaceView.
+                // NOTE: THIS IS IMPORTANT. At this stage in the code, NOTHING HAS A size yet. Nothing
+                // has actually been created that the user ACTUALLY SEE.
+                FrameLayout frameLayout = (FrameLayout) findViewById(R.id.fr_layout_camera_preview);
+                frameLayout.addView(cameraPreview);
 
-                @Override
-                public void onGlobalLayout() {
-                    setBox();
-                }
-            });
-//        } else {
-//            closeActivity("Unable to Contact Server. Check IP Address.");
-//        }
+                // Okay, a ViewTreeObserver allows us to listen for layout changes on a particular
+                // element. So, we are going to attach a callback to the ViewTreeObserver that belongs
+                // to the CameraPreview SurfaceView that will be called when any layout changes occur in
+                // the CameraPreview SurfaceView.
+                ViewTreeObserver observer = cameraPreview.getViewTreeObserver();
+                // Adding the callback function "setBox" to be called.
+                observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        setBox();
+                    }
+                });
+
+            }
+        });
     }
 
     public void closeActivity() {
@@ -114,11 +109,16 @@ public class CameraPreviewActivity extends AppCompatActivity {
         closeActivity();
     }
 
-    public void displayPopUp(String message) {
-        int duration = Toast.LENGTH_LONG;
-        Toast toast = Toast.makeText(getApplicationContext(), message, duration);
-        toast.setGravity(Gravity.TOP|Gravity.TOP, 0, 0);
-        toast.show();
+    public void displayPopUp(final String message) {
+        runOnUiThread(new Runnable(){
+            @Override
+            public void run() {
+                int duration = Toast.LENGTH_LONG;
+                Toast toast = Toast.makeText(getApplicationContext(), message, duration);
+                toast.setGravity(Gravity.TOP|Gravity.TOP, 0, 0);
+                toast.show();
+            }
+        });
     }
 
     /**
@@ -227,25 +227,6 @@ public class CameraPreviewActivity extends AppCompatActivity {
 
         displayPopUp("Sending Image to Server...");
         persistentClient.send(imageByteString64);
-
-//        // Instantiate a JSON Object.
-//        JSONObject urlParamJSON = new JSONObject();
-//
-//        try {
-//            // Put the Base64 string into the JSON Object.
-//            urlParamJSON.put("img_string_b64", imageByteString64);
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//
-//        try {
-//            // Construct the URL where the image will be sent.
-//            String url = "http://" + this.ipAddress;
-//            // Execute the Async process that will perform the actual HTTP POST Request.
-//            new EndpointsAsyncTask().execute(new Pair<String, String>(url, urlParamJSON.toString()));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
     /**
@@ -253,14 +234,19 @@ public class CameraPreviewActivity extends AppCompatActivity {
      *
      * @param response
      */
-    protected void httpPOSTRequestCallback(String response) {
-        TextView translationTxtView = (TextView) findViewById(R.id.tv_translation);
-        if (response == null) {
-            translationTxtView.setText("Server is being weird. Check IP Address or check server.");
-            displayPopUp("Server is being weird. Check IP Address or check server.");
-        } else {
-            translationTxtView.setText(response);
-        }
+    protected void serverResponseCallback(final String response) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TextView txtView = (TextView) findViewById(R.id.tv_translation);
+                if (response == null) {
+                    txtView.setText("Server is being weird. Check IP Address or check server.");
+                    displayPopUp("Server is being weird. Check IP Address or check server.");
+                } else {
+                    txtView.setText(response);
+                }
+            }
+        });
     }
 
     private class PersistentClient extends WebSocketClient {
@@ -271,138 +257,27 @@ public class CameraPreviewActivity extends AppCompatActivity {
 
         @Override
         public void onOpen(ServerHandshake handshakedata ) {
-            System.out.println( "opened connection" );
+            displayPopUp("Connection with server has been established.");
+            setupActivity();
         }
 
         @Override
         public void onMessage(String message ) {
-            System.out.println( "received: " + message );
-            httpPOSTRequestCallback(message);
+            serverResponseCallback(message);
         }
 
         @Override
         public void onClose(int code, String reason, boolean remote ) {
-            // The codecodes are documented in class org.java_websocket.framing.CloseFrame
-            System.out.println( "Connection closed.");
-            closeActivity();
+            // The codes are documented in class org.java_websocket.framing.CloseFrame
+            closeActivity("Connection with the server has been lost.\n" + reason);
         }
 
         @Override
         public void onError( Exception ex ) {
             // if the error is fatal then onClose will be called additionally
-            closeActivity();
+            displayPopUp("There was an error: " + ex.getMessage());
             ex.printStackTrace();
         }
 
-    }
-
-    /**
-     * This is a private class that will do something/anything asynchronously. It will perform
-     * the HTTP POST request asynchronously.
-     *
-     * Some explanation for the way this class structure works.
-     * https://androidresearch.wordpress.com/2012/03/17/understanding-asynctask-once-and-forever/
-     *
-     * AsyncTask< Params, Progress, Result>
-     * Params will be url and url parameter
-     * Result will be the result of the request from the server
-     *
-     */
-    private class EndpointsAsyncTask extends AsyncTask<Pair<String, String>, Void, String> {
-
-        @Override
-        protected String doInBackground(Pair<String, String>... params) {
-            // Everything in this function is performed in the background/asynchronously.
-
-            String url = params[0].first;
-            String urlParams = params[0].second;
-            return executePost(url, urlParams);
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            // The word "post" in onPostExecute has nothing to do with the HTTP POST request. It
-            // just means that this function is called post/after execution of the async task.
-            httpPOSTRequestCallback(result);
-        }
-
-        /**
-         * A helper function to do the ACTUAL HTTP POST request.
-         * If you DO NOT know how HTTP Requests, especially POST request are sent over a network,
-         * stop now and go learn. Otherwise, this code will look like gibberish.
-         *
-         * @param targetURL
-         * @param urlParameters
-         * @return HTTP Post server response
-         */
-        protected String executePost(String targetURL, String urlParameters) {
-            HttpURLConnection connection = null;
-
-            try {
-                // Create connection with the target URL.
-                URL url = new URL(targetURL);
-
-                // Open the connection and configure the connection the way a HTTP POST connection
-                // that communicates via JSON should be configured.
-                // Notice that we didn't specify a timeout. There's a default timeout (idk what it
-                // is) but i didn't specify a timeout because who knows how long it'll take Howard's
-                // network to send this request.
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type",
-                        "application/json; charset=UTF-8");
-                connection.setRequestProperty("Content-Length",
-                        Integer.toString(urlParameters.getBytes().length));
-                connection.setRequestProperty("Content-Language", "en-US");
-                connection.setUseCaches(false);
-
-                // Create a stream with the server where data can be sent.
-                DataOutputStream wr = new DataOutputStream (
-                        connection.getOutputStream());
-                // Send the url parameters as data.
-                wr.writeBytes(urlParameters);
-                // Close the stream.
-                wr.close();
-
-                // Create a stream with the server where data can be received.
-                InputStream is;
-                // Get the response code of the POST request. 400 is error. 200 is OK.
-                int status = connection.getResponseCode();
-
-                if (status >= 400)
-                    // This call will block. In other words, the JVM will pause execution of this
-                    // app until this function finishes returning the error stream.
-                    is = connection.getErrorStream();
-                else
-                    // This call will block. In other words, the JVM will pause execution of this
-                    // app until this function finishes returning the input stream.
-                    is = connection.getInputStream();
-
-                // Once either an error stream or input stream has been received, it the actual
-                // contents of the stream need to be parsed via a BufferedReader.
-                BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-
-                // StringBuilder will be used to, well, build a string out of the input stream data.
-                StringBuilder response = new StringBuilder();
-                String line;
-                // While the buffered reader is able to read data from the InputStream
-                while ((line = rd.readLine()) != null) {
-                    response.append(line);
-                    response.append('\n');
-                }
-                // Close BufferedReader.
-                rd.close();
-
-                // Return the built string.
-                return response.toString();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
-            return null;
-        }
     }
 }
