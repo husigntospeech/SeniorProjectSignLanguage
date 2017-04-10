@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param v
      */
-    protected void startTranslationButtonCallback(View v) {
+    public void startTranslationButtonCallback(View v) {
         // Create intent object that will transition out of this activity to a new one.
         Intent cameraPreviewIntent = new Intent(MainActivity.this, CameraPreviewActivity.class);
 

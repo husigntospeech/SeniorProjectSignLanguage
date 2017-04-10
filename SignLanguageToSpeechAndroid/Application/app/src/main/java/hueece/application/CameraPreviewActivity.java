@@ -9,13 +9,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Pair;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft_17;
+import org.java_websocket.handshake.ServerHandshake;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -24,6 +29,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 
 /**
@@ -46,6 +53,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
     private Camera camera;
     private CameraPreview cameraPreview;
     private String ipAddress;
+    private PersistentClient persistentClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,32 +66,59 @@ public class CameraPreviewActivity extends AppCompatActivity {
         Bundle extras = getIntent().getExtras();
         ipAddress = extras.getString("ipAddress");
 
-        // Get an instance that represents the camera of the android device.
-        camera = getCameraInstance();
+        try {
+            persistentClient = new PersistentClient("ws://" + ipAddress);
+            persistentClient.connect();
+        } catch (java.net.URISyntaxException e) {
+            e.printStackTrace();
+        }
 
-        // Instantiate an object of CameraPreview.
-        // It helps to actually look at this class before reading the rest of this class.
-        cameraPreview = new CameraPreview(this, camera);
+        if (persistentClient.isOpen()) {
+            // Get an instance that represents the camera of the android device.
+            camera = getCameraInstance();
 
-        // Create a FrameLayout that will hold the CameraPreview SurfaceView.
-        // NOTE: THIS IS IMPORTANT. At this stage in the code, NOTHING HAS A size yet. Nothing
-        // has actually been created that the user ACTUALLY SEE.
-        FrameLayout frameLayout = (FrameLayout) findViewById(R.id.fr_layout_camera_preview);
-        frameLayout.addView(cameraPreview);
+            // Instantiate an object of CameraPreview.
+            // It helps to actually look at this class before reading the rest of this class.
+            cameraPreview = new CameraPreview(this, camera);
 
-        // Okay, a ViewTreeObserver allows us to listen for layout changes on a particular
-        // element. So, we are going to attach a callback to the ViewTreeObserver that belongs
-        // to the CameraPreview SurfaceView that will be called when any layout changes occur in
-        // the CameraPreview SurfaceView.
-        ViewTreeObserver observer = cameraPreview.getViewTreeObserver();
-        // Adding the callback function "setBox" to be called.
-        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            // Create a FrameLayout that will hold the CameraPreview SurfaceView.
+            // NOTE: THIS IS IMPORTANT. At this stage in the code, NOTHING HAS A size yet. Nothing
+            // has actually been created that the user ACTUALLY SEE.
+            FrameLayout frameLayout = (FrameLayout) findViewById(R.id.fr_layout_camera_preview);
+            frameLayout.addView(cameraPreview);
 
-           @Override
-           public void onGlobalLayout() {
-            setBox();
-           }
-        });
+            // Okay, a ViewTreeObserver allows us to listen for layout changes on a particular
+            // element. So, we are going to attach a callback to the ViewTreeObserver that belongs
+            // to the CameraPreview SurfaceView that will be called when any layout changes occur in
+            // the CameraPreview SurfaceView.
+            ViewTreeObserver observer = cameraPreview.getViewTreeObserver();
+            // Adding the callback function "setBox" to be called.
+            observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+
+                @Override
+                public void onGlobalLayout() {
+                    setBox();
+                }
+            });
+        } else {
+            closeActivity("Unable to Contact Server. Check IP Address.");
+        }
+    }
+
+    public void closeActivity() {
+        finish();
+    }
+
+    public void closeActivity(String message) {
+        displayPopUp(message);
+        closeActivity();
+    }
+
+    public void displayPopUp(String message) {
+        int duration = Toast.LENGTH_LONG;
+        Toast toast = Toast.makeText(getApplicationContext(), message, duration);
+        toast.setGravity(Gravity.TOP|Gravity.TOP, 0, 0);
+        toast.show();
     }
 
     /**
@@ -190,24 +225,27 @@ public class CameraPreviewActivity extends AppCompatActivity {
         // Convert the byte array into a Base64 string.
         String imageByteString64 = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
-        // Instantiate a JSON Object.
-        JSONObject urlParamJSON = new JSONObject();
+        displayPopUp("Sending Image to Server...");
+        persistentClient.send(imageByteString64);
 
-        try {
-            // Put the Base64 string into the JSON Object.
-            urlParamJSON.put("img_string_b64", imageByteString64);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            // Construct the URL where the image will be sent.
-            String url = "http://" + this.ipAddress;
-            // Execute the Async process that will perform the actual HTTP POST Request.
-            new EndpointsAsyncTask().execute(new Pair<String, String>(url, urlParamJSON.toString()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        // Instantiate a JSON Object.
+//        JSONObject urlParamJSON = new JSONObject();
+//
+//        try {
+//            // Put the Base64 string into the JSON Object.
+//            urlParamJSON.put("img_string_b64", imageByteString64);
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//
+//        try {
+//            // Construct the URL where the image will be sent.
+//            String url = "http://" + this.ipAddress;
+//            // Execute the Async process that will perform the actual HTTP POST Request.
+//            new EndpointsAsyncTask().execute(new Pair<String, String>(url, urlParamJSON.toString()));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -219,9 +257,43 @@ public class CameraPreviewActivity extends AppCompatActivity {
         TextView translationTxtView = (TextView) findViewById(R.id.tv_translation);
         if (response == null) {
             translationTxtView.setText("Server is being weird. Check IP Address or check server.");
+            displayPopUp("Server is being weird. Check IP Address or check server.");
         } else {
             translationTxtView.setText(response);
         }
+    }
+
+    private class PersistentClient extends WebSocketClient {
+
+        public PersistentClient(String url) throws URISyntaxException {
+            super(new URI(url), new Draft_17());
+        }
+
+        @Override
+        public void onOpen(ServerHandshake handshakedata ) {
+            System.out.println( "opened connection" );
+        }
+
+        @Override
+        public void onMessage(String message ) {
+            System.out.println( "received: " + message );
+            httpPOSTRequestCallback(message);
+        }
+
+        @Override
+        public void onClose(int code, String reason, boolean remote ) {
+            // The codecodes are documented in class org.java_websocket.framing.CloseFrame
+            System.out.println( "Connection closed.");
+            closeActivity();
+        }
+
+        @Override
+        public void onError( Exception ex ) {
+            // if the error is fatal then onClose will be called additionally
+            closeActivity();
+            ex.printStackTrace();
+        }
+
     }
 
     /**
