@@ -27,7 +27,7 @@ def on_client_message(client, server, message):
 
     opencv_handler = OpenCVHandler()
     # Get translation from OpenCV then play text audio
-    text_trans = opencv_handler.get_text_translation_from_image(image_name, uid)
+    text_trans = opencv_handler.get_text_translation_from_image(image_path, uid)
     opencv_handler.play_audio_translation_from_text(text_trans)
 
     print 'Sending back translation.'
@@ -37,7 +37,7 @@ def on_client_message(client, server, message):
     remove_image_from_server(image_path)
 
 
-def write_image_to_system(decoded_image_string, image_path):
+def write_image_to_server(decoded_image_string, image_path):
     print 'Writing image to server.'
     f = open(image_path, 'wb')
     f.write(decoded_image_string)
