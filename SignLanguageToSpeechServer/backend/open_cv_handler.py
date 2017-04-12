@@ -1,4 +1,3 @@
-# OpenCV imports go here
 import cv2
 import numpy as np
 import math
@@ -17,9 +16,9 @@ class OpenCVHandler(object):
 
 		cv2.imshow('im', cropped_image)
 
-		# Write cropped image for debugging purposes.
-		cropped_image_name = 'cropped_image_%s.jpg' % (image_id)
-		cv2.imwrite(cropped_image_name, cropped_image)
+		# Write cropped image to server for debugging purposes.
+		cropped_image_path = 'cropped_image_%s.jpg' % (image_id)
+		cv2.imwrite(cropped_image_path, cropped_image)
 
 		grey_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
 		contours = self.get_contours_of_image(grey_image)
@@ -27,7 +26,7 @@ class OpenCVHandler(object):
 	    # Gets largest contour.
 		image_largest_contour = self.get_largest_contour(contours)
 
-		corrDict = {}
+		corr_dict = {}
 		stock_image_paths = self.get_paths_to_stored_images()
 		print stock_image_paths
 
@@ -46,7 +45,7 @@ class OpenCVHandler(object):
 			stock_largest_contour = self.get_largest_contour(contours)
 
 			corr = self.compare_shapes(stock_largest_contour, image_largest_contour)
-			corrDict[corr] = letter
+			corr_dict[corr] = letter
 
 		x, y, w, h = cv2.boundingRect(image_largest_contour)
 
@@ -54,13 +53,18 @@ class OpenCVHandler(object):
 		cv2.drawContours(sketch,[image_largest_contour], 0, (0, 255, 0), 0)
 		cv2.imshow("Contour", sketch)
 
-		for key in corrDict:
-			print '%s : %s' % (corrDict[key], key)
 
-		corr_list = corrDict.keys()
+		os.remove(cropped_image_path)
+		return get_letter_with_lowest_correlation(corr_dict)
+
+	def get_letter_with_lowest_correlation(corr_dict):
+		for key in corr_dict:
+			print '%s : %s' % (corr_dict[key], key)
+
+		corr_list = corr_dict.keys()
 		corr_list.sort()
 
-		return corrDict[corr_list[0]]
+		return corr_dict[curr_list[0]]
 
 	def compare_shapes(self, shape1, shape2):
 		return cv2.matchShapes(shape1, shape2, 1, 0.0)

@@ -188,7 +188,6 @@ public class CameraPreviewActivity extends AppCompatActivity {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
             sendRequestToServer(data);
-
             // This restarts the camera preview that the user is seeing otherwise the user would
             // only see the static image that they just took.
             camera.stopPreview();
