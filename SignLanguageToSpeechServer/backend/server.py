@@ -1,8 +1,7 @@
 import base64
 import logging
 import os
-
-from uuid import uuid4
+import uuid
 
 from open_cv_handler import OpenCVHandler
 from websocket_server import WebsocketServer
