@@ -38,25 +38,36 @@ class OpenCVHandler(object):
 		    contours, hierarchy = cv2.findContours(thresh1.copy(),cv2.RETR_TREE, \
 		           cv2.CHAIN_APPROX_NONE)
 
-		# compare captured image with hand
-		for x in range(ord('A'), ord('F')+1):
-			imLetter = cv2.imread('sign_' + chr(x) + '.jpg')
-	        grey = cv2.cvtColor(imLetter, cv2.COLOR_BGR2GRAY)
-	        blurred = cv2.GaussianBlur(grey, value, 0)
-	        _, letter_thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
-	        if version is '3':
-	            image, letter_contours, hierarchy = cv2.findContours(letter_thresh.copy(), \
-	               cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+	  	cnt = max(contours, key = lambda x: cv2.contourArea(x))
+	  	print(ord('A'), " ", ord('G'))
 
-	        elif version is '2':
-	            letter_countours, hierarchy = cv2.findContours(letter_thresh.copy(),cv2.RETR_TREE, \
-	               cv2.CHAIN_APPROX_NONE)
+		for x in range(ord('A'), ord('G')):
+			count = 1
+			corr = 5
+        	print(chr(x))
 
-	        cnt = max(contours, key = lambda x: cv2.contourArea(x))
-	        letter_cnt = max(letter_contours, key = lambda x: cv2.contourArea(x))
+        	while not cv2.imread('sign_' + chr(x) +'/sign_' + chr(x) + str(count) + '.jpg', 0) is None :
+        		grey = cv2.imread('sign_' + chr(x) +'/sign_' + chr(x) + str(count) + '.jpg', 0)
+        		blurred = cv2.GaussianBlur(grey, value, 0)
+        		_, letter_thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
-	        corrDict[cv2.matchShapes(cnt,letter_cnt,1,0.0)] = chr(x)
+        		if version is '3':
+        			image, letter_contours, hierarchy = cv2.findContours(letter_thresh.copy(), \
+	                   cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+
+        		elif version is '2':
+        			letter_countours, hierarchy = cv2.findContours(letter_thresh.copy(),cv2.RETR_TREE, \
+	                   cv2.CHAIN_APPROX_NONE)
+
+                letter_cnt = max(letter_contours, key = lambda x: cv2.contourArea(x))
+
+                if cv2.matchShapes(cnt,letter_cnt,1,0.0) < corr:
+	            	corr = cv2.matchShapes(cnt,letter_cnt,1,0.0)
+            	count +=1
+
+	        count -= 1
+	        corrDict[corr] = chr(x) 
 
 
 		x,y,w,h = cv2.boundingRect(cnt)
