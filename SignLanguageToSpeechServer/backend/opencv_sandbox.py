@@ -1,3 +1,6 @@
+# This is a sandbox file to play with OpenCV and its function.
+# IT IS NOT PART OF THE SERVER OR ANYTHING. Just a playground.
+
 import cv2
 import numpy as np
 import math
