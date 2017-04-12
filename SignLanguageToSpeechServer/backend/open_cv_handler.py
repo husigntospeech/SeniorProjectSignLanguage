@@ -2,6 +2,7 @@
 import cv2
 import numpy as np
 import math
+import os
 
 import win32com.client
 import pyttsx
@@ -10,10 +11,9 @@ class OpenCVHandler(object):
 
 	# target rect coordinates (250,275),(50,0)
 	def get_text_translation_from_image(self, image_name, image_id):
-		(version, _, _) = cv2.__version__.split('.')
 
 		# read captured image
-		cropped_image = read_captured_image_and_crop(image_name)
+		cropped_image = self.read_captured_image_and_crop(image_name)
 
 		cv2.imshow('im', cropped_image)
 
@@ -29,6 +29,7 @@ class OpenCVHandler(object):
 
 		corrDict = {}
 		stock_image_paths = self.get_paths_to_stored_images()
+		print stock_image_paths
 
 		# Iterate through each image path
 		# Get each image contour
@@ -40,11 +41,12 @@ class OpenCVHandler(object):
 			letter = pieces[0].split('_')[1]
 			stock_image = cv2.imread(stock_image_path)
 
-			contours = self.get_contours_of_image(stock_image)
+			stock_grey_image = cv2.cvtColor(stock_image, cv2.COLOR_BGR2GRAY)
+			contours = self.get_contours_of_image(stock_grey_image)
 			stock_largest_contour = self.get_largest_contour(contours)
 
-			corr = self.compare_shapes(stock_largest_contour, largest_contour)
-			corrDict[corr] = chr(letter)
+			corr = self.compare_shapes(stock_largest_contour, image_largest_contour)
+			corrDict[corr] = letter
 
 		x, y, w, h = cv2.boundingRect(image_largest_contour)
 
@@ -60,26 +62,27 @@ class OpenCVHandler(object):
 
 		return corrDict[corr_list[0]]
 
-	def compare_shapes(shape1, shape2):
+	def compare_shapes(self, shape1, shape2):
 		return cv2.matchShapes(shape1, shape2, 1, 0.0)
 
-	def get_largest_contour(contours):
-		contours = self.get_contours_of_image(stock_image)
+	def get_largest_contour(self, contours):
 		largest_contour = max(contours, key = lambda x: cv2.contourArea(x))
 
 		return largest_contour
 
 	def get_contours_of_image(self, image):
+		(version, _, _) = cv2.__version__.split('.')
 		value = (35, 35)
+
 		blurred = cv2.GaussianBlur(image, value, 0)
 		_, letter_thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
 		if version is '3':
-			image, letter_contours, hierarchy = cv2.findContours(letter_thresh.copy(), \
+			image, contours, hierarchy = cv2.findContours(letter_thresh.copy(), \
 			   cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
 		elif version is '2':
-			letter_countours, hierarchy = cv2.findContours(letter_thresh.copy(),cv2.RETR_TREE, \
+			contours, hierarchy = cv2.findContours(letter_thresh.copy(),cv2.RETR_TREE, \
 			   cv2.CHAIN_APPROX_NONE)
 
 		return contours
@@ -87,15 +90,15 @@ class OpenCVHandler(object):
 
 	def get_paths_to_stored_images(self):
 		paths = []
-		for letter_value in range(ord('A'), ord('G')):
-	        folder_path = 'sign_%s' % (chr(letter_value))
-	        directory = os.listdir(folder_path)
-	        for image_name in directory:
-	            valid_image_name = image_name.lower().endswith('.jpg')
-	            if valid_image_name:
-	                file_path = '%s/%s' % (folder_path, image_name)
-	                paths.append(file_path)
+		print range(ord('A'), ord('G'))
 
+		for letter_value in range(ord('A'), ord('G')):
+			folder_path = 'sign_%s' % (chr(letter_value))
+			print folder_path
+			directory = os.listdir(folder_path)
+			for image_name in directory:
+				file_path = '%s/%s' % (folder_path, image_name)
+				paths.append(file_path)
 		return paths
 
 	def read_captured_image_and_crop(self, image_name):

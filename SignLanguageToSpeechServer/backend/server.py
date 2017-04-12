@@ -18,7 +18,7 @@ def on_client_message(client, server, message):
     # Give each image that comes in a unique universal id because each the
     # processes each client in a SEPARATE thread.
     uid = uuid.uuid4().hex
-    image_name = 'image_%s' % (image_id)
+    image_name = 'image_%s' % (uid)
 
     # Write image to server.
     write_image_to_system(decoded_str, image_name)
@@ -41,6 +41,7 @@ def write_image_to_system(decoded_str, image_name):
 
 def main():
     print 'Starting the server.'
+    
     ip = raw_input('Enter ip address: ')
     server = WebsocketServer(8080, host=ip, loglevel=logging.INFO)
 
