@@ -4,7 +4,7 @@ import os
 
 from uuid import uuid4
 
-# from open_cv_handler import OpenCVHandler
+from open_cv_handler import OpenCVHandler
 from websocket_server import WebsocketServer
 
 def on_client_connect(client, server):
