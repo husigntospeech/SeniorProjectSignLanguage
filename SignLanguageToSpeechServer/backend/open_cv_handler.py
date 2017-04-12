@@ -8,9 +8,7 @@ import pyttsx
 
 class OpenCVHandler(object):
 
-	# target rect coordinates (250,275),(50,0)
 	def get_text_translation_from_image(self, image_name, image_id):
-
 		# read captured image
 		cropped_image = self.read_captured_image_and_crop(image_name)
 
@@ -20,20 +18,28 @@ class OpenCVHandler(object):
 		cropped_image_path = 'cropped_image_%s.jpg' % (image_id)
 		cv2.imwrite(cropped_image_path, cropped_image)
 
+		# Get grey scale image
 		grey_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
+
 		contours = self.get_contours_of_image(grey_image)
-
-	    # Gets largest contour.
 		image_largest_contour = self.get_largest_contour(contours)
-
-		corr_dict = {}
 		stock_image_paths = self.get_paths_to_stored_images()
-		print stock_image_paths
+		curr_dict = self.get_correlations_with_stock_images(stock_image_paths)
 
+		x, y, w, h = cv2.boundingRect(image_largest_contour)
+		sketch = np.zeros(cropped_image.shape, np.uint8)
+		cv2.drawContours(sketch,[image_largest_contour], 0, (0, 255, 0), 0)
+		cv2.imshow("Contour", sketch)
+
+		os.remove(cropped_image_path)
+		return get_letter_with_lowest_correlation(corr_dict)
+
+	def get_correlations_with_stock_images(stock_image_paths):
 		# Iterate through each image path
 		# Get each image contour
 		# Compare to the received image's contour
 		# Put that correlation into dictionary
+		corr_dict = {}
 		for stock_image_path in stock_image_paths:
 			# Get letter
 			pieces = stock_image_path.split('/')
@@ -47,15 +53,7 @@ class OpenCVHandler(object):
 			corr = self.compare_shapes(stock_largest_contour, image_largest_contour)
 			corr_dict[corr] = letter
 
-		x, y, w, h = cv2.boundingRect(image_largest_contour)
-
-		sketch = np.zeros(cropped_image.shape, np.uint8)
-		cv2.drawContours(sketch,[image_largest_contour], 0, (0, 255, 0), 0)
-		cv2.imshow("Contour", sketch)
-
-
-		os.remove(cropped_image_path)
-		return get_letter_with_lowest_correlation(corr_dict)
+		return corr_dict
 
 	def get_letter_with_lowest_correlation(corr_dict):
 		for key in corr_dict:
@@ -103,6 +101,7 @@ class OpenCVHandler(object):
 			for image_name in directory:
 				file_path = '%s/%s' % (folder_path, image_name)
 				paths.append(file_path)
+
 		return paths
 
 	def read_captured_image_and_crop(self, image_name):

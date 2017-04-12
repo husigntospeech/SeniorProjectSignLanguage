@@ -33,23 +33,24 @@ def on_client_message(client, server, message):
     print 'Sending back translation.'
     server.send_message(client, text_trans)
 
-    print 'Removing written image from server'
+    print 'Removing written image from server.'
     remove_image_from_server(image_path)
 
 
 def write_image_to_system(decoded_image_string, image_path):
-    print 'Writing image to server'
+    print 'Writing image to server.'
     f = open(image_path, 'wb')
     f.write(decoded_image_string)
     f.close()
 
 def remove_image_from_server(image_path):
+    print 'Removing written image from server.'
     os.remove(image_path)
 
 def main():
-    print 'Starting the server.'
-
     ip = raw_input('Enter ip address: ')
+
+    print 'Starting the server.'
     server = WebsocketServer(8080, host=ip, loglevel=logging.INFO)
 
     server.set_fn_new_client(on_client_connect)
