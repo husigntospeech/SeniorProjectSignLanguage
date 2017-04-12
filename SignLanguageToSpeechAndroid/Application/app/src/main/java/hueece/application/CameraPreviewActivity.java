@@ -205,28 +205,34 @@ public class CameraPreviewActivity extends AppCompatActivity {
      *
      * @param imageBytes
      */
-    protected void sendRequestToServer(byte[] imageBytes) {
+    protected void sendRequestToServer(final byte[] imageBytes) {
 
-        // Turn the byte array into its actual bitmap image.
-        Bitmap image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-        // Rotate the image.
-        // READ, THIS IS IMPORTANT: The image is rotated because in SOME Android phones, the camera
-        // software that comes with the Android phone will AUTOMATICALLY rotate an image to
-        // landscape mode when a picture is taken using the camera. This function rotates it back.
-        // IF YOU ARE USING AN ANDROID PHONE THAT DOES NOT AUTOMATICALLY ROTATE,
-        // COMMENT OUT THE CALL TO THE ROTATE FUNCTION BELOW.
-        image = rotateImage(image, 90);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // Turn the byte array into its actual bitmap image.
+                Bitmap image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                // Rotate the image.
+                // READ, THIS IS IMPORTANT: The image is rotated because in SOME Android phones, the camera
+                // software that comes with the Android phone will AUTOMATICALLY rotate an image to
+                // landscape mode when a picture is taken using the camera. This function rotates it back.
+                // IF YOU ARE USING AN ANDROID PHONE THAT DOES NOT AUTOMATICALLY ROTATE,
+                // COMMENT OUT THE CALL TO THE ROTATE FUNCTION BELOW.
+                image = rotateImage(image, 90);
 
-        // Turn the bitmap image into a byte array that has LESS quality than the original.
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.JPEG, 30, stream);
-        imageBytes = stream.toByteArray();
+                // Turn the bitmap image into a byte array that has LESS quality than the original.
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                image.compress(Bitmap.CompressFormat.JPEG, 30, stream);
+                byte[] bytes = stream.toByteArray();
 
-        // Convert the byte array into a Base64 string.
-        String imageByteString64 = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                // Convert the byte array into a Base64 string.
+                String imageByteString64 = Base64.encodeToString(bytes, Base64.DEFAULT);
 
-        displayPopUp("Sending Image to Server...");
-        persistentClient.send(imageByteString64);
+                displayPopUp("Sending Image to Server...");
+                persistentClient.send(imageByteString64);
+            }
+        });
+        t.start();
     }
 
     /**
