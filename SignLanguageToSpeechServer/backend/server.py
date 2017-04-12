@@ -17,7 +17,7 @@ def on_client_message(client, server, message):
 
     # Give each image that comes in a unique universal id because each the
     # processes each client in a SEPARATE thread.
-    image_id = uuid.uuid4().hex
+    uid = uuid.uuid4().hex
     image_name = 'image_%s' % (image_id)
 
     # Write image to server.
@@ -27,7 +27,7 @@ def on_client_message(client, server, message):
 
     opencv_handler = OpenCVHandler()
     # Get translation from OpenCV then play text audio
-    text_trans = opencv_handler.get_text_translation_from_image(image_name)
+    text_trans = opencv_handler.get_text_translation_from_image(image_name, uid)
     opencv_handler.play_audio_translation_from_text(text_trans)
 
     print 'Sending back translation.'
