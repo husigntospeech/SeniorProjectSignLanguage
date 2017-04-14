@@ -12,8 +12,6 @@ class OpenCVHandler(object):
 		# read captured image
 		cropped_image = self.read_captured_image_and_crop(image_name)
 
-		cv2.imshow('im', cropped_image)
-
 		# Write cropped image to server for debugging purposes.
 		cropped_image_path = 'cropped_image_%s.jpg' % (image_id)
 		cv2.imwrite(cropped_image_path, cropped_image)
@@ -31,6 +29,7 @@ class OpenCVHandler(object):
 		cv2.drawContours(sketch,[image_largest_contour], 0, (0, 255, 0), 0)
 		cv2.imshow("Contour", sketch)
 
+		cv2.imshow('im', cropped_image)
 		os.remove(cropped_image_path)
 		return self.get_letter_with_lowest_correlation(corr_dict)
 
