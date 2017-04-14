@@ -21,13 +21,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="63dp" />
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:srcCompat="@android:color/darker_gray"
-        android:id="@+id/imgvw_camera_image"
-        android:layout_alignBottom="@+id/tv_log_msg"/>
-
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,22 +31,24 @@
         android:layout_below="@+id/tv_app_name"
         android:layout_centerHorizontal="true" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/tv_log_msg"
-        android:textSize="30sp"
-        android:text="Errors:"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
     <Button
         android:text="Start Translating"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btn_start_translation"
-        android:onClick="startTranslationButtonCallback"
-        android:layout_above="@+id/tv_log_msg"
+        android:onClick="startTranslatingButtonCallback"
+        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true" />
+
+    <CheckBox
+        android:id="@+id/check_box_training"
+        android:checked="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Training Mode"
+        android:layout_above="@+id/btn_start_translation"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="26dp" />
+
+
 </RelativeLayout>

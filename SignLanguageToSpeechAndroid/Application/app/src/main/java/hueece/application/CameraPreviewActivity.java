@@ -4,15 +4,18 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.DialogInterface;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_17;
@@ -40,6 +43,8 @@ import java.net.URISyntaxException;
  */
 public class CameraPreviewActivity extends AppCompatActivity {
 
+    private boolean isTraining;
+    private String serverResponse;
     private Camera camera;
     private CameraPreview cameraPreview;
     private String ipAddress;
@@ -55,6 +60,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
         // We are going to retrieve that stored IP Address here.
         Bundle extras = getIntent().getExtras();
         ipAddress = extras.getString("ipAddress");
+        isTraining = extras.getBoolean("isTraining");
 
         try {
             persistentClient = new PersistentClient("ws://" + ipAddress);
@@ -119,6 +125,43 @@ public class CameraPreviewActivity extends AppCompatActivity {
                 toast.show();
             }
         });
+    }
+
+    public void displayAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        final String[] pieces = serverResponse.split(" ");
+        builder.setTitle("Server Translation is " + pieces[0] + ". Pick Correct Translation.");
+
+        // Get list of letters in the alphabet
+        CharSequence[] letters = new CharSequence[26];
+        for (int i = 0; i < letters.length; i++)
+            letters[i] = ((char) (i + 65)) + "";
+
+        builder.setItems(letters, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                pieces[0] = ((char) (which + 65)) + "";
+
+                String message = pieces[0] + " " + pieces[1];
+
+                displayPopUp("Oh no! Alright, will let server know. =(");
+                persistentClient.send(message);
+                camera.startPreview();
+            }
+        });
+
+        // Set up the buttons
+        builder.setPositiveButton("Translation Was Correct.", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                persistentClient.send(serverResponse);
+                displayPopUp("Yay! Server got it right! =)");
+                camera.startPreview();
+            }
+        });
+
+        builder.show();
     }
 
     /**
@@ -188,10 +231,16 @@ public class CameraPreviewActivity extends AppCompatActivity {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
             sendRequestToServer(data);
-            // This restarts the camera preview that the user is seeing otherwise the user would
-            // only see the static image that they just took.
-            camera.stopPreview();
-            camera.startPreview();
+
+            if (isTraining) {
+                camera.stopPreview();
+            } else {
+                // This restarts the camera preview that the user is seeing otherwise the user would
+                // only see the static image that they just took.
+                camera.stopPreview();
+                camera.startPreview();
+            }
+
         }
     };
 
@@ -248,7 +297,12 @@ public class CameraPreviewActivity extends AppCompatActivity {
                     txtView.setText("Server is being weird. Check IP Address or check server.");
                     displayPopUp("Server is being weird. Check IP Address or check server.");
                 } else {
-                    txtView.setText(response);
+                    if (isTraining) {
+                        serverResponse = response;
+                        displayAlertDialog();
+                    } else {
+                        txtView.setText(response);
+                    }
                 }
             }
         });

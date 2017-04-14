@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 /**
@@ -26,11 +27,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Called by the Start Translation button when the button is pressed.
+     * Called by the Start Translating button when the button is pressed.
      *
      * @param v
      */
-    public void startTranslationButtonCallback(View v) {
+    public void startTranslatingButtonCallback(View v) {
         // Create intent object that will transition out of this activity to a new one.
         Intent cameraPreviewIntent = new Intent(MainActivity.this, CameraPreviewActivity.class);
 
@@ -41,9 +42,15 @@ public class MainActivity extends AppCompatActivity {
         // If an IP Address is provided, save it in the intent object, then start the new activity.
         if (ipAddress != null) {
             cameraPreviewIntent.putExtra("ipAddress", ipAddress);
+            cameraPreviewIntent.putExtra("isTraining", checkBoxIsChecked());
             startActivity(cameraPreviewIntent);
         }
 
+    }
+
+    private boolean checkBoxIsChecked() {
+        CheckBox checkBox = (CheckBox) findViewById(R.id.check_box_training);
+        return checkBox.isChecked();
     }
 
 }

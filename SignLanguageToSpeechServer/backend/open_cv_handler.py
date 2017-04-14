@@ -30,7 +30,6 @@ class OpenCVHandler(object):
 		cv2.imshow("Contour", sketch)
 
 		cv2.imshow('im', cropped_image)
-		os.remove(cropped_image_path)
 
 		translation = self.get_letter_with_lowest_correlation(corr_dict)
 		print 'Closest Translation: %s' %(translation)
