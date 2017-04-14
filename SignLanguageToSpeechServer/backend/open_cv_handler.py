@@ -50,13 +50,13 @@ class OpenCVHandler(object):
 			letter = pieces[0].split('_')[1]
 			stock_image = cv2.imread(stock_image_path)
 
-			if self.within_two(num_defects, defect_map[letter]):
-				stock_grey_image = cv2.cvtColor(stock_image, cv2.COLOR_BGR2GRAY)
-				contours = self.get_contours_of_image(stock_grey_image)
-				stock_largest_contour = self.get_largest_contour(contours)
+			#if self.within_two(num_defects, defect_map[letter]):
+			stock_grey_image = cv2.cvtColor(stock_image, cv2.COLOR_BGR2GRAY)
+			contours = self.get_contours_of_image(stock_grey_image)
+			stock_largest_contour = self.get_largest_contour(contours)
 
-				corr = self.compare_shapes(stock_largest_contour, image_largest_contour)
-				corr_dict[corr] = letter
+			corr = self.compare_shapes(stock_largest_contour, image_largest_contour)
+			corr_dict[corr] = letter
 
 		return corr_dict
 
