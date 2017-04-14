@@ -161,6 +161,18 @@ public class CameraPreviewActivity extends AppCompatActivity {
             }
         });
 
+        builder.setNegativeButton("Discard Translation.", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                pieces[0] = "!";
+
+                String message = pieces[0] + " " + pieces[1];
+                displayPopUp("Will tell server to discard image.");
+                persistentClient.send(message);
+                camera.startPreview();
+            }
+        });
+
         builder.show();
     }
 
