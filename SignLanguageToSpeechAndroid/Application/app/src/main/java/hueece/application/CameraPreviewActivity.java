@@ -21,6 +21,8 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 /**
@@ -44,6 +46,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
     private CameraPreview cameraPreview;
     private String ipAddress;
     private PersistentClient persistentClient;
+    private ExecutorService activityThreadService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +58,8 @@ public class CameraPreviewActivity extends AppCompatActivity {
         // We are going to retrieve that stored IP Address here.
         Bundle extras = getIntent().getExtras();
         ipAddress = extras.getString("ipAddress");
+
+        activityThreadService = Executors.newFixedThreadPool(1);
 
         try {
             persistentClient = new PersistentClient("ws://" + ipAddress);
@@ -206,7 +211,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
      */
     protected void sendRequestToServer(final byte[] imageBytes) {
 
-        Thread t = new Thread(new Runnable() {
+        activityThreadService.submit(new Runnable() {
             @Override
             public void run() {
                 // Turn the byte array into its actual bitmap image.
@@ -229,9 +234,9 @@ public class CameraPreviewActivity extends AppCompatActivity {
 
                 displayPopUp("Sending Image to Server...");
                 persistentClient.send(imageByteString64);
+                displayPopUp("Sent Image...Hopefully server got it.. =/");
             }
         });
-        t.start();
     }
 
     /**

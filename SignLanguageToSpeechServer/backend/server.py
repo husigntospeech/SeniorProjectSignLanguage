@@ -35,7 +35,7 @@ def on_client_message(client, server, message):
 
     print 'Removing written image from server.'
     remove_image_from_server(image_path)
-
+    print 'Done.\n'
 
 def write_image_to_server(decoded_image_string, image_path):
     print 'Writing image to server.'
@@ -44,7 +44,6 @@ def write_image_to_server(decoded_image_string, image_path):
     f.close()
 
 def remove_image_from_server(image_path):
-    print 'Removing written image from server.'
     os.remove(image_path)
 
 def main():
