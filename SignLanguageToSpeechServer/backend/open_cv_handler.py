@@ -31,7 +31,10 @@ class OpenCVHandler(object):
 
 		cv2.imshow('im', cropped_image)
 		os.remove(cropped_image_path)
-		return self.get_letter_with_lowest_correlation(corr_dict)
+
+		translation = self.get_letter_with_lowest_correlation(corr_dict)
+		print 'Closest Translation: %s' %(translation)
+		return translation
 
 	def get_correlations_with_stock_images(self, stock_image_paths, image_largest_contour, cropped_image):
 		# Iterate through each image path
@@ -64,8 +67,6 @@ class OpenCVHandler(object):
 
 		corr_list = corr_dict.keys()
 		corr_list.sort()
-
-		print corr_list
 
 		return corr_dict[corr_list[0]]
 
