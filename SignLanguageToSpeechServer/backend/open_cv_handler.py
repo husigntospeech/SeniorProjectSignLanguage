@@ -24,7 +24,7 @@ class OpenCVHandler(object):
 		contours = self.get_contours_of_image(grey_image)
 		image_largest_contour = self.get_largest_contour(contours)
 		stock_image_paths = self.get_paths_to_stored_images()
-		curr_dict = self.get_correlations_with_stock_images(stock_image_paths)
+		corr_dict = self.get_correlations_with_stock_images(stock_image_paths, image_largest_contour, cropped_image)
 
 		x, y, w, h = cv2.boundingRect(image_largest_contour)
 		sketch = np.zeros(cropped_image.shape, np.uint8)
@@ -32,15 +32,15 @@ class OpenCVHandler(object):
 		cv2.imshow("Contour", sketch)
 
 		os.remove(cropped_image_path)
-		return get_letter_with_lowest_correlation(corr_dict)
+		return self.get_letter_with_lowest_correlation(corr_dict)
 
-	def get_correlations_with_stock_images(stock_image_paths):
+	def get_correlations_with_stock_images(self, stock_image_paths, image_largest_contour, cropped_image):
 		# Iterate through each image path
 		# Get each image contour
 		# Compare to the received image's contour
 		# Put that correlation into dictionary
 
-		num_defects = self.find_defects(image_largest_contour)
+		num_defects = self.find_defects(image_largest_contour, cropped_image)
 		corr_dict = {}
 		defect_map = self.get_defect_map()
 		for stock_image_path in stock_image_paths:
@@ -59,14 +59,16 @@ class OpenCVHandler(object):
 
 		return corr_dict
 
-	def get_letter_with_lowest_correlation(corr_dict):
+	def get_letter_with_lowest_correlation(self, corr_dict):
 		for key in corr_dict:
 			print '%s : %s' % (corr_dict[key], key)
 
 		corr_list = corr_dict.keys()
 		corr_list.sort()
 
-		return corr_dict[curr_list[0]]
+		print corr_list
+
+		return corr_dict[corr_list[0]]
 
 	def compare_shapes(self, shape1, shape2):
 		return cv2.matchShapes(shape1, shape2, 1, 0.0)
@@ -77,7 +79,7 @@ class OpenCVHandler(object):
 		return largest_contour
 
 	def get_defect_map(self):
-		
+
 		return {'A': 0, 'B': 0, 'C': 2, 'D': 0,'E': 0,'F': 1,'G': 1}
 
 	def get_contours_of_image(self, image):
@@ -122,7 +124,7 @@ class OpenCVHandler(object):
 		eng.say(text)
 		eng.runAndWait()
 
-	def find_defects(self,cnt):
+	def find_defects(self, cnt, crop_img):
 		hull = cv2.convexHull(cnt,returnPoints = False)
 		defects = cv2.convexityDefects(cnt,hull)
 		count_defects = 0
@@ -137,8 +139,8 @@ class OpenCVHandler(object):
 			angle = math.acos((b**2 + c**2 - a**2)/(2*b*c)) * 57
 			if angle <= 90:
 				count_defects += 1
-				cv2.circle(crop_img,far,1,[0,0,255],-1)
-			cv2.line(crop_img,start,end,[0,255,0],2)
+				cv2.circle(crop_img, far, 1, [0,0,255], -1)
+			cv2.line(crop_img, start, end, [0,255,0], 2)
 		return count_defects
 
 
