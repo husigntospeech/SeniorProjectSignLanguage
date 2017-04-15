@@ -14,7 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/fr_layout_camera_preview"
-        android:layout_above="@+id/btn_translate">
+        android:layout_above="@+id/btn_translate"
+        android:layout_alignParentStart="true">
 
         <!--<SurfaceView-->
             <!--android:layout_width="match_parent"-->
@@ -43,16 +44,16 @@
         android:layout_alignParentEnd="true" />
 
     <TextView
-        android:text="TextView"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:id="@+id/tv_translation"
-        android:textSize="18sp"
-        android:textAlignment="viewStart"
+        android:textSize="30sp"
+        android:textAlignment="center"
         android:textColor="@android:color/holo_red_dark"
         android:layout_above="@+id/btn_translate"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:textStyle="normal|bold" />
+        android:textStyle="normal|bold"
+        android:textAllCaps="true" />
 
 </RelativeLayout>

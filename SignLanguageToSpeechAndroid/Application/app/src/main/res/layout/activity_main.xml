@@ -11,15 +11,38 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="hueece.application.MainActivity">
 
+    <Button
+        android:text="Start Translating"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_start_translation"
+        android:onClick="startTranslatingButtonCallback"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sign Language To Speech"
+        android:text="Sign Language to Speech"
         android:id="@+id/tv_app_name"
         android:textAppearance="@style/TextAppearance.AppCompat.SearchResult.Title"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="63dp" />
+        android:textAllCaps="false"
+        android:textAlignment="center"
+        android:fontFamily="sans-serif-medium"
+        android:textStyle="normal|bold" />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:srcCompat="@drawable/howardu_clocktower_logo"
+        android:id="@+id/imageView"
+        android:layout_above="@+id/edtx_ip_field"
+        android:layout_alignParentEnd="true"
+        android:scaleType="center"
+        android:cropToPadding="false"
+        android:adjustViewBounds="false" />
 
     <EditText
         android:layout_width="wrap_content"
@@ -28,16 +51,8 @@
         android:text="10.224.91.17:8080"
         android:ems="10"
         android:id="@+id/edtx_ip_field"
-        android:layout_below="@+id/tv_app_name"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:text="Start Translating"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/btn_start_translation"
-        android:onClick="startTranslatingButtonCallback"
-        android:layout_centerVertical="true"
+        android:textAlignment="center"
+        android:layout_above="@+id/btn_start_translation"
         android:layout_centerHorizontal="true" />
 
     <CheckBox
@@ -46,9 +61,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Training Mode"
-        android:layout_above="@+id/btn_start_translation"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="26dp" />
+        android:layout_above="@+id/edtx_ip_field"
+        android:layout_centerHorizontal="true" />
 
 
 </RelativeLayout>

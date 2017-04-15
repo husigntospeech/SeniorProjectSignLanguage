@@ -11,7 +11,7 @@ import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.widget.EditText;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -62,9 +62,12 @@ public class CameraPreviewActivity extends AppCompatActivity {
         ipAddress = extras.getString("ipAddress");
         isTraining = extras.getBoolean("isTraining");
 
+        setTranslateButtonVisibility(false);
+
         try {
             persistentClient = new PersistentClient("ws://" + ipAddress);
-            displayPopUp("Attempting to connecting to " + ipAddress);
+            displayPopUp("Attempting to connect to " + ipAddress +
+                            ". Will load the rest of the activity if successful.");
             persistentClient.connect();
         } catch (java.net.URISyntaxException e) {
             e.printStackTrace();
@@ -110,6 +113,15 @@ public class CameraPreviewActivity extends AppCompatActivity {
         finish();
     }
 
+    public void setTranslateButtonVisibility(final boolean enable) {
+        runOnUiThread(new Runnable(){
+            @Override
+            public void run() {
+                Button b = (Button) findViewById(R.id.btn_translate);
+                b.setEnabled(enable);
+            }
+        });
+    }
     public void closeActivity(String message) {
         displayPopUp(message);
         closeActivity();
@@ -148,6 +160,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
                 displayPopUp("Oh no! Alright, will let server know. =(");
                 persistentClient.send(message);
                 camera.startPreview();
+                setTranslateButtonVisibility(true);
             }
         });
 
@@ -158,6 +171,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
                 persistentClient.send(serverResponse);
                 displayPopUp("Yay! Server got it right! =)");
                 camera.startPreview();
+                setTranslateButtonVisibility(true);
             }
         });
 
@@ -170,6 +184,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
                 displayPopUp("Will tell server to discard image.");
                 persistentClient.send(message);
                 camera.startPreview();
+                setTranslateButtonVisibility(true);
             }
         });
 
@@ -246,6 +261,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
 
             if (isTraining) {
                 camera.stopPreview();
+                setTranslateButtonVisibility(false);
             } else {
                 // This restarts the camera preview that the user is seeing otherwise the user would
                 // only see the static image that they just took.
@@ -306,14 +322,16 @@ public class CameraPreviewActivity extends AppCompatActivity {
             public void run() {
                 TextView txtView = (TextView) findViewById(R.id.tv_translation);
                 if (response == null) {
-                    txtView.setText("Server is being weird. Check IP Address or check server.");
+                    txtView.setText("Error: Check Server.");
                     displayPopUp("Server is being weird. Check IP Address or check server.");
                 } else {
                     if (isTraining) {
                         serverResponse = response;
                         displayAlertDialog();
                     } else {
-                        txtView.setText(response);
+                        String[] pieces = response.split(" ");
+                        String text = pieces[0];
+                        txtView.setText(text);
                     }
                 }
             }
@@ -330,6 +348,7 @@ public class CameraPreviewActivity extends AppCompatActivity {
         public void onOpen(ServerHandshake handshakedata ) {
             displayPopUp("Connection with server has been established.");
             setupActivity();
+            setTranslateButtonVisibility(true);
         }
 
         @Override
