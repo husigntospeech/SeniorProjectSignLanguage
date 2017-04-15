@@ -13,7 +13,7 @@ class OpenCVHandler(object):
 		cropped_image = self.read_captured_image_and_crop(image_name)
 
 		# Write cropped image to server for debugging purposes.
-		cropped_image_path = 'cropped_image_%s.jpg' % (image_id)
+		cropped_image_path = 'temp/cropped_image_%s.jpg' % (image_id)
 		cv2.imwrite(cropped_image_path, cropped_image)
 
 		# Get grey scale image
@@ -22,7 +22,8 @@ class OpenCVHandler(object):
 		contours = self.get_contours_of_image(grey_image)
 		image_largest_contour = self.get_largest_contour(contours)
 		stock_image_paths = self.get_paths_to_stored_images()
-		corr_dict = self.get_correlations_with_stock_images(stock_image_paths, image_largest_contour, cropped_image)
+		corr_dict = self.get_correlations_with_stock_images(stock_image_paths,
+										image_largest_contour, cropped_image)
 
 		x, y, w, h = cv2.boundingRect(image_largest_contour)
 		sketch = np.zeros(cropped_image.shape, np.uint8)
@@ -32,10 +33,12 @@ class OpenCVHandler(object):
 		cv2.imshow('im', cropped_image)
 
 		translation = self.get_letter_with_lowest_correlation(corr_dict)
+
 		print 'Closest Translation: %s' %(translation)
 		return translation
 
-	def get_correlations_with_stock_images(self, stock_image_paths, image_largest_contour, cropped_image):
+	def get_correlations_with_stock_images(self, stock_image_paths,
+										image_largest_contour, cropped_image):
 		# Iterate through each image path
 		# Get each image contour
 		# Compare to the received image's contour
@@ -55,7 +58,8 @@ class OpenCVHandler(object):
 			contours = self.get_contours_of_image(stock_grey_image)
 			stock_largest_contour = self.get_largest_contour(contours)
 
-			corr = self.compare_shapes(stock_largest_contour, image_largest_contour)
+			corr = self.compare_shapes(stock_largest_contour,
+														image_largest_contour)
 			corr_dict[corr] = letter
 
 		return corr_dict
@@ -86,15 +90,16 @@ class OpenCVHandler(object):
 		value = (35, 35)
 
 		blurred = cv2.GaussianBlur(image, value, 0)
-		_, letter_thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+		_, letter_thresh = cv2.threshold(blurred, 127, 255,
+										cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
 		if version is '3':
-			image, contours, hierarchy = cv2.findContours(letter_thresh.copy(), \
-			   cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+			image, contours, hierarchy = cv2.findContours(letter_thresh.copy(),
+										cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
 		elif version is '2':
-			contours, hierarchy = cv2.findContours(letter_thresh.copy(),cv2.RETR_TREE, \
-			   cv2.CHAIN_APPROX_NONE)
+			contours, hierarchy = cv2.findContours(letter_thresh.copy(),
+										cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
 		return contours
 
