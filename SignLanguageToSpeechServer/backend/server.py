@@ -78,9 +78,7 @@ def main():
 
     print 'Starting the server.'
     server = WebsocketServer(8080, host=ip, loglevel=logging.INFO)
-
     server.set_fn_message_received(on_client_message)
-
     server.run_forever()
 
 if __name__ == '__main__':

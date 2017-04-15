@@ -6,6 +6,8 @@ import os
 import win32com.client
 import pyttsx
 
+ALLOW_DEBUGING = True
+
 class OpenCVHandler(object):
 
 	def get_text_translation_from_image(self, image_name, image_id):
@@ -46,6 +48,9 @@ class OpenCVHandler(object):
 
 		num_defects = self.find_defects(image_largest_contour, cropped_image)
 		corr_dict = {}
+		# The list is for debugging purposes.
+		corr_list = []
+
 		defect_map = self.get_defect_map()
 		for stock_image_path in stock_image_paths:
 			# Get letter
@@ -61,13 +66,19 @@ class OpenCVHandler(object):
 			corr = self.compare_shapes(stock_largest_contour,
 														image_largest_contour)
 			corr_dict[corr] = letter
+			corr_list.append('%s\t-- %s' % (corr, letter))
+
+		if ALLOW_DEBUGING:
+			self.pretty_print_corr_list(corr_list)
 
 		return corr_dict
 
-	def get_letter_with_lowest_correlation(self, corr_dict):
-		for key in corr_dict:
-			print '%s : %s' % (corr_dict[key], key)
+	def pretty_print_corr_list(self, corr_list):
+		corr_list.sort()
+		for item in corr_list:
+			print '%s' % (item)
 
+	def get_letter_with_lowest_correlation(self, corr_dict):
 		corr_list = corr_dict.keys()
 		corr_list.sort()
 
@@ -78,11 +89,9 @@ class OpenCVHandler(object):
 
 	def get_largest_contour(self, contours):
 		largest_contour = max(contours, key = lambda x: cv2.contourArea(x))
-
 		return largest_contour
 
 	def get_defect_map(self):
-
 		return {'A': 0, 'B': 0, 'C': 2, 'D': 0,'E': 0,'F': 1,'G': 1}
 
 	def get_contours_of_image(self, image):
