@@ -5,7 +5,7 @@ import uuid
 import shutil
 
 from open_cv_handler import OpenCVHandler
-from websocket_server import WebsocketServer
+from lib.websocket_server import WebsocketServer
 
 def on_client_message(client, server, message):
     print 'Got message.'
