@@ -67,7 +67,7 @@ def remove_image_from_server(image_path):
 def moveImageToCorrectLocation(translation, uid):
     print 'Moving cropped image to correct location.'
     image_name = 'cropped_image_%s.jpg' % (uid)
-    new_folder = 'sign_%s' % (translation)
+    new_folder = 'letters/sign_%s' % (translation)
 
     image_path = '%s/%s' % (TEMP_FOLDER_PATH, image_name)
     new_path = '%s/%s' % (new_folder, image_name)
