@@ -55,7 +55,7 @@ class OpenCVHandler(object):
 		for stock_image_path in stock_image_paths:
 			# Get letter
 			pieces = stock_image_path.split('/')
-			letter = pieces[0].split('_')[1]
+			letter = pieces[1].split('_')[1]
 			stock_image = cv2.imread(stock_image_path)
 
 			#if self.within_two(num_defects, defect_map[letter]):
@@ -85,7 +85,7 @@ class OpenCVHandler(object):
 		return corr_dict[corr_list[0]]
 
 	def compare_shapes(self, shape1, shape2):
-		return cv2.matchShapes(shape1, shape2, 1, 0.0)
+		return cv2.matchShapes(shape1, shape2, 2, 0.0)
 
 	def get_largest_contour(self, contours):
 		largest_contour = max(contours, key = lambda x: cv2.contourArea(x))
@@ -115,10 +115,12 @@ class OpenCVHandler(object):
 
 	def get_paths_to_stored_images(self):
 		paths = []
-		for letter_value in range(ord('A'), ord('G')):
-			folder_path = 'sign_%s' % (chr(letter_value))
+		for letter_value in range(ord('A'), ord('Z') + 1):
+			folder_path = 'letters/sign_%s' % (chr(letter_value))
 			directory = os.listdir(folder_path)
 			for image_name in directory:
+				if not image_name.endswith('.jpg'):
+					continue
 				file_path = '%s/%s' % (folder_path, image_name)
 				paths.append(file_path)
 
@@ -153,7 +155,7 @@ class OpenCVHandler(object):
 			if angle <= 90:
 				count_defects += 1
 				cv2.circle(crop_img, far, 1, [0,0,255], -1)
-			cv2.line(crop_img, start, end, [0,255,0], 2)
+			#cv2.line(crop_img, start, end, [0,255,0], 2)
 		return count_defects
 
 
