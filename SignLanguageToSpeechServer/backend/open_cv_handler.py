@@ -115,7 +115,7 @@ class OpenCVHandler(object):
 
 	def get_paths_to_stored_images(self):
 		paths = []
-		for letter_value in range(ord('A'), ord('Z') + 1):
+		for letter_value in range(ord('A'), ord('F') + 1):
 			folder_path = 'letters/sign_%s' % (chr(letter_value))
 			directory = os.listdir(folder_path)
 			for image_name in directory:
